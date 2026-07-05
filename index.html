@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>nankingjing — Open Source AI Agent Portfolio</title>
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--heading:#f0f6fc;--green:#3fb950;--orange:#d2991d;--purple:#d2a8ff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;line-height:1.7;padding:0 16px}
+main{max-width:860px;margin:0 auto;padding:48px 0 80px}
+h1{font-size:2em;color:var(--heading);margin-bottom:4px}
+h2{font-size:1.3em;color:var(--heading);margin:40px 0 16px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.subtitle{color:var(--muted);font-size:1em;margin-bottom:32px}
+.stats{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:40px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;min-width:120px;text-align:center}
+.stat .num{font-size:1.8em;font-weight:700;color:var(--accent)}
+.stat .label{font-size:.82em;color:var(--muted);margin-top:4px}
+.repo{margin-bottom:40px}
+.repo h3{font-size:1.1em;margin-bottom:8px}
+.repo h3 a{color:var(--accent);text-decoration:none}
+.repo h3 a:hover{text-decoration:underline}
+table{width:100%;border-collapse:collapse;font-size:.9em;margin:12px 0}
+th,td{border:1px solid var(--border);padding:8px 12px;text-align:left}
+th{background:var(--surface);color:var(--heading);font-weight:600}
+td a{color:var(--accent);text-decoration:none}
+td a:hover{text-decoration:underline}
+.tag{display:inline-block;border-radius:10px;padding:1px 8px;font-size:.75em;font-weight:600}
+.tag-g{background:#3fb95022;color:var(--green)}.tag-o{background:#d2991d22;color:var(--orange)}.tag-p{background:#d2a8ff22;color:var(--purple)}
+ul{margin:12px 0 12px 20px}li{margin-bottom:6px}
+blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:16px 0;color:var(--muted);background:var(--surface);border-radius:0 6px 6px 0}
+.footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--border);color:var(--muted);font-size:.85em}
+@media(max-width:600px){main{padding:32px 0 48px}h1{font-size:1.5em}.stats{gap:10px}.stat{min-width:90px;padding:12px 14px}.stat .num{font-size:1.4em}}
+</style>
+</head>
+<body>
+<main>
+
+<h1>Open Source AI Agent Contributions</h1>
+<p class="subtitle">nankingjing (黄云龙) · 4 repositories · 50+ PRs · 3 shipped features</p>
+
+<div class="stats">
+  <div class="stat"><div class="num">7×</div><div class="label">CHANGELOG @署名</div></div>
+  <div class="stat"><div class="num">2</div><div class="label">Commits on main</div></div>
+  <div class="stat"><div class="num">1</div><div class="label">Shipped Release</div></div>
+  <div class="stat"><div class="num">1</div><div class="label">Platinum Hermit</div></div>
+  <div class="stat"><div class="num">50+</div><div class="label">Total PRs</div></div>
+</div>
+
+<!-- ===== Hermes WebUI ===== -->
+<div class="repo">
+<h3><a href="https://github.com/nesquena/hermes-webui">Hermes WebUI</a> — 最成功的贡献赛道</h3>
+<table>
+<tr><th>#</th><th>功能</th><th>状态</th></tr>
+<tr><td>1</td><td>移动端审批弹窗高度修复</td><td><span class="tag tag-g">SHIPPED v0.51.877</span></td></tr>
+<tr><td>2</td><td>Transcript 评估器拆分重构</td><td><span class="tag tag-g">MERGED</span></td></tr>
+<tr><td>3</td><td>侧边栏菜单不随滚动关闭</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
+<tr><td>4</td><td>Profile 切换后新会话不再 404</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
+<tr><td>5</td><td>远程网关健康检查 Bearer 认证</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
+<tr><td>6</td><td>更新摘要新增 Expand 控件</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
+<tr><td>7</td><td>Ctrl+K 文字输入保护</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
+<tr><td>8</td><td>三面板缩放布局修复</td><td>PR <a href="https://github.com/nesquena/hermes-webui/pull/5621">#5621</a></td></tr>
+<tr><td>9</td><td>移动端语音输入连续模式</td><td>PR <a href="https://github.com/nesquena/hermes-webui/pull/5622">#5622</a></td></tr>
+</table>
+</div>
+
+<!-- ===== Hermes Agent ===== -->
+<div class="repo">
+<h3><a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> — 核心运行时贡献</h3>
+
+<p><strong>Commits on main</strong>：</p>
+<ul>
+<li><a href="https://github.com/NousResearch/hermes-agent/commit/3e204bd"><code>3e204bd</code></a> — fix(agent): strip <code>_db_persisted</code> in compression rotation transcript</li>
+<li><a href="https://github.com/NousResearch/hermes-agent/commit/5eaccf5"><code>5eaccf5</code></a> — fix(gateway): queue interrupts during in-flight compression</li>
+</ul>
+
+<blockquote>
+<p><strong>Top Contributor Follow-up</strong>: kshitijk4poor (15/15 merge rate) built on our commit <code>3e204bd</code> with <a href="https://github.com/NousResearch/hermes-agent/commit/e1a1dac"><code>e1a1dac</code></a> — "enforce marker-strip invariant with a single terminal sweep".</p>
+</blockquote>
+
+<table>
+<tr><th>PR</th><th>修复</th><th>类型</th></tr>
+<tr><td><a href="https://github.com/NousResearch/hermes-agent/pull/58800">#58800</a></td><td>禁用 coding toolset 时保护显式启用的 terminal/file 工具</td><td><span class="tag tag-p">Agent Core</span></td></tr>
+<tr><td><a href="https://github.com/NousResearch/hermes-agent/pull/58769">#58769</a></td><td>memory char_limit 配置重启后失效</td><td><span class="tag tag-p">Memory</span></td></tr>
+<tr><td><a href="https://github.com/NousResearch/hermes-agent/pull/58699">#58699</a></td><td>Python 3.14 DaemonThreadPoolExecutor 兼容性</td><td><span class="tag tag-p">Infra</span></td></tr>
+<tr><td><a href="https://github.com/NousResearch/hermes-agent/pull/58417">#58417</a></td><td>json_parse 容忍 UTF-8 BOM (salvage #57870)</td><td><span class="tag tag-o">Salvage</span></td></tr>
+<tr><td><a href="https://github.com/NousResearch/hermes-agent/pull/58805">#58805</a></td><td>tool-audit skill — agent 自诊断</td><td><span class="tag tag-p">Skill</span></td></tr>
+<tr><td><a href="https://github.com/NousResearch/hermes-agent/pull/58344">#58344</a></td><td>session-health skill — agent 自检测</td><td><span class="tag tag-p">Skill</span></td></tr>
+</table>
+</div>
+
+<!-- ===== OpenClaw ===== -->
+<div class="repo">
+<h3><a href="https://github.com/openclaw/openclaw">OpenClaw</a> — Agent 基础设施</h3>
+<table>
+<tr><th>PR</th><th>修复</th><th>评级</th></tr>
+<tr><td><a href="https://github.com/openclaw/openclaw/pull/99041">#99041</a></td><td>modelstudio profile alias P1 修复</td><td><span class="tag tag-p">🐚 Platinum Hermit</span></td></tr>
+<tr><td><a href="https://github.com/openclaw/openclaw/pull/100193">#100193</a></td><td>Anthropic thinking error 恢复扩展到 body/detail/responseBody</td><td>—</td></tr>
+<tr><td><a href="https://github.com/openclaw/openclaw/pull/100202">#100202</a></td><td>thinking-signature replay_invalid 崩溃修复</td><td>—</td></tr>
+<tr><td><a href="https://github.com/openclaw/openclaw/pull/100300">#100300</a></td><td>Codex native hook relay 竞态条件</td><td>—</td></tr>
+<tr><td><a href="https://github.com/openclaw/openclaw/pull/100302">#100302</a></td><td>Telegram parameter 标签泄露到可见消息</td><td>—</td></tr>
+</table>
+<p><strong>ClawHub Plugin</strong>: <a href="https://github.com/nankingjing/openclaw/tree/feat/transcript-stats-plugin">transcript-stats</a> — JSONL session 聚合诊断工具</p>
+</div>
+
+<!-- ===== Agent-Reach ===== -->
+<div class="repo">
+<h3><a href="https://github.com/Panniantong/Agent-Reach">Agent-Reach</a> — Agent 互联网接入</h3>
+<table>
+<tr><th>PR</th><th>修复</th></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/474">#474</a></td><td>Cookie 隐私泄露 — --platform 过滤</td></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/475">#475</a></td><td>OpenRouter STT 语音转录后端</td></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/477">#477</a></td><td>雪球 pe_ttm 永远为 None — API endpoint 修正</td></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/480">#480</a></td><td>Jina Reader Cloudflare 拦截自动回退</td></tr>
+</table>
+</div>
+
+<!-- ===== 技术文章 ===== -->
+<h2>技术深度</h2>
+<p><a href="deep-dive.html"><strong>Hermes Agent 上下文压缩系统：三层 Bug 深度分析</strong></a> — 追踪一个配置值穿过三层调用链、在每个层级被不同地解释、最终引发三个不同故障的系统性分析。</p>
+
+<div class="footer">
+<p>All claims verifiable on GitHub · nankingjing · 2026</p>
+</div>
+
+</main>
+</body>
+</html>
