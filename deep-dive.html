@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>上下文压缩系统深度分析 — nankingjing</title>
+<style>
+:root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--heading:#f0f6fc}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;line-height:1.7;padding:0 16px}
+article{max-width:780px;margin:0 auto;padding:48px 0 80px}
+h1{font-size:1.8em;color:var(--heading);margin-bottom:8px}
+h2{font-size:1.3em;color:var(--heading);margin:40px 0 16px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+h3{font-size:1.1em;color:var(--heading);margin:28px 0 12px}
+p{margin-bottom:14px}
+pre{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 18px;overflow-x:auto;font-size:.85em;line-height:1.55;margin:14px 0;color:#c9d1d9}
+code{font-family:'SF Mono',Consolas,monospace;font-size:.88em}
+:not(pre)>code{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:#d2a8ff}
+blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:14px 0;color:var(--muted);background:var(--surface);border-radius:0 6px 6px 0}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+ul,ol{margin:10px 0 10px 22px}li{margin-bottom:5px}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.9em}
+th,td{border:1px solid var(--border);padding:6px 12px;text-align:left}
+th{background:var(--surface);color:var(--heading)}
+.back{margin-bottom:24px;font-size:.9em}
+.footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:.85em}
+@media(max-width:600px){article{padding:24px 0 48px}h1{font-size:1.3em}pre{padding:10px 12px;font-size:.78em}}
+</style>
+</head>
+<body>
+<article>
+<p class="back"><a href="./">&larr; 返回 Portfolio</a></p>
+<h1>Hermes Agent 上下文压缩系统：三层 Bug 深度分析</h1>
+
+<blockquote><p>作者：黄云龙 (nankingjing)  </p></blockquote>
+<blockquote><p>项目：Hermes Agent (NousResearch) — 核心 Contributor  </p></blockquote>
+<blockquote><p>分析对象：`agent/conversation_compression.py` + `agent/context_compressor.py` + `agent/model_metadata.py`</p></blockquote>
+
+<p>---</p>
+
+<h2> 为什么写这篇文章</h2>
+
+<p>我在 Hermes Agent 的上下文压缩（Context Compression）系统中发现并修复了多个 bug。回看时发现这些 bug 彼此相关——它们揭示了同一个系统性问题：<strong>压缩系统的"配置 → 模型检测 → 运行时"三层调用链缺乏类型安全边界</strong>。</p>
+
+<p>这篇文章追踪了 <code>auxiliary.compression.context_length</code> 一个配置值如何穿过三层代码、在每个层级被不同地解释、最终在运行时引发完全不同的故障。</p>
+
+<p>---</p>
+
+<h2> 背景：Agent 上下文压缩的作用</h2>
+
+<p>LLM Agent 在长对话中会积累大量消息（几百条消息、几十万 tokens）。上下文压缩（compression）的功能是：当 token 数超过阈值时，用一个辅助模型将早期对话总结成一两句话，释放被占用的上下文窗口。</p>
+
+<p>关键流程：</p>
+<pre>用户设置 config.yaml
+  → agent_init.py 读取配置
+    → conversation_compression.py 检查压缩模型可行性（check_compression_model_feasibility）
+      → model_metadata.py 检测辅助模型的实际 context window
+        → context_compressor.py 运行时执行压缩
+</pre>
+
+<p>---</p>
+
+<h2> Bug 1：`_db_persisted` Marker 传播导致 Session Amnesia</h2>
+
+<h3> 现象</h3>
+<p>Gateway 重启后，所有压缩过的会话丢失了 transcript——用户打开历史 session 看到的是空白。</p>
+
+<h3> 追踪</h3>
+
+<p>在 <code>conversation_compression.py</code> 的 rotation 流程中，压缩后的消息列表通过 <code>_flush_messages_to_session_db()</code> 写入新的 child session。但这个函数在写入前会检查每条消息上是否存在 <code>_db_persisted</code> marker：</p>
+
+<pre># 简化的逻辑
+for msg in compressed_messages:
+    if getattr(msg, '_db_persisted', False):
+        continue  # 跳过！不写入！
+    # 写入 session DB
+</pre>
+
+<p>问题出在 <code>_fresh_compaction_message_copy()</code> 中。这个消息复制函数从缓存的 gateway incremental flush 中浅拷贝了消息对象——连 <code>_db_persisted</code> marker 也一起拷贝过来。下游的 session DB 写入器看到所有消息都标记为"已持久化"，跳过了全部写入。</p>
+
+<h3> 为什么难发现</h3>
+
+<ol>
+<li>**只在 gateway 重启后复现**——因为内存中的消息在重启后需要从 session DB 重新加载</li>
+<li>**marker 是内部状态**——不是用户可见的字段，只在深层调用链中传递</li>
+<li>**浅拷贝的副作用**——Python 的 `copy()` 默认浅拷贝，把不该传播的内部状态也复制了</li>
+</ul>
+
+<h3> 修复</h3>
+
+<p>在 <code>_fresh_compaction_message_copy()</code> 中显式 strip <code>_db_persisted</code> marker：</p>
+
+<pre>def _fresh_compaction_message_copy(msg):
+    copy = msg.copy()
+    copy.pop('_db_persisted', None)
+    return copy
+</pre>
+
+<p><strong>kshitijk4poor（项目 Top Contributor）后续在这个修复之上加了 follow-up</strong>：<code>enforce marker-strip invariant with a single terminal sweep</code>——在我的基础上把 marker 清理统一到压缩管道的最后一个阶段执行。</p>
+
+<p>---</p>
+
+<h2> Bug 2：`auxiliary.compression.context_length` 触发 Auto-Lower，导致每轮都压缩</h2>
+
+<h3> 现象</h3>
+
+<p>用户设置 <code>auxiliary.compression.context_length: 128000</code>（deepseek-v4-flash 的实际 context window）后，长会话（~734 条消息、~383K tokens）中压缩在<strong>每一轮</strong>都触发，而不是只在超过阈值时才触发。</p>
+
+<h3> 追踪</h3>
+
+<p>这个配置值经过了三个函数：</p>
+
+<p><strong>第一层：<code>model_metadata.py::get_model_context_length()</code></strong></p>
+
+<pre># 配置覆盖直接返回——"用户最了解自己的模型"
+if config_context_length is not None:
+    return config_context_length  # 返回 128000
+</pre>
+
+<p><strong>第二层：<code>conversation_compression.py::_check_compression_model_feasibility()</code></strong></p>
+
+<pre>aux_context = get_model_context_length(
+    aux_model, 
+    config_context_length=getattr(agent, '_aux_compression_context_length_config', None)
+)
+# aux_context = 128000
+
+threshold = agent.context_compressor.threshold_tokens  # 400000
+
+if aux_context < threshold:  # 128000 < 400000 → True!
+    # Auto-lower：自动降低 session 压缩阈值
+    agent.context_compressor.threshold_tokens = aux_context  # 128000!
+</pre>
+
+<p><strong>第三层：运行时</strong></p>
+
+<p>压缩阈值变成了 128000——只要 session 超过 128000 tokens（在长会话中几乎是每一轮），就会触发压缩。</p>
+
+<h3> 为什么难发现</h3>
+
+<ol>
+<li>**Auto-lower 本身是合理的设计**——当辅助模型比主模型小时，降低阈值确保压缩能正常工作</li>
+<li>**但用户设置的值被当成了"模型真实能力"**——用户设 128000 是因为那就是模型的真实 context window，不是为了降低阈值</li>
+<li>**三个函数的"语义不一致"**：</li>
+</ul>
+<p>   - <code>get_model_context_length</code> 认为"用户覆盖值 = 真实值"</p>
+<p>   - <code>_check_compression_model_feasibility</code> 认为"aux_context = 模型检测值"</p>
+<p>   - 但实际上 <code>aux_context</code> 可能来自配置覆盖，不是模型检测</p>
+
+<h3> 修复</h3>
+
+<p>在 auto-lower 前加 guard：配置覆盖值不应触发 auto-lower。</p>
+
+<pre>user_override = getattr(agent, '_aux_compression_context_length_config', None)
+if (
+    aux_context < threshold
+    and (user_override is None or user_override != aux_context)
+):
+    # 只有真实模型检测值小于阈值时才 auto-lower
+    agent.context_compressor.threshold_tokens = aux_context
+</pre>
+
+<p>---</p>
+
+<h2> Bug 3：`_summarize_tool_result` 对 Dict 类型参数 Crash</h2>
+
+<h3> 现象</h3>
+
+<p>当 write_file 工具调用的 <code>content</code> 参数是 JSON 对象（而非纯文本）时，压缩系统全线崩溃：</p>
+
+<pre>AttributeError: 'dict' object has no attribute 'count'
+→ _summarize_tool_result 失败
+→ _prune_old_tool_results 失败  
+→ compress() 失败
+→ 上下文窗口溢出
+</pre>
+
+<h3> 根因</h3>
+
+<p><code>_summarize_tool_result</code> 的类型假设：</p>
+
+<pre># 原代码假设 content 一定是 str
+written_lines = args.get("content", "").count("\n") + 1
+</pre>
+
+<p>但模型输出的 tool call 参数可以是任意 JSON 类型。当 content 为 <code>{"key": "value"}</code> 时：</p>
+<ul>
+<li>`args.get("content", "")` 返回 dict（非空 → truthy）</li>
+<li>`.count("\n")` 在 dict 上调用 → `AttributeError`</li>
+</ul>
+
+<p>同类问题还存在于 <code>execute_code</code> 和 <code>vision_analyze</code> 的 summarizer 分支——至少三个工具类型受影响。</p>
+
+<h3> 修复</h3>
+
+<p>添加 <code>_safe_str()</code> 辅助函数，对非字符串类型做安全强制转换：</p>
+
+<pre>def _safe_str(val, default=""):
+    if isinstance(val, str):
+        return val
+    if val is None:
+        return default
+    return str(val)
+</pre>
+
+<p>---</p>
+
+<h2> 系统性问题：为什么这三个 Bug 会同时存在</h2>
+
+<p>回头看，这三个 bug 共享一个根本原因：</p>
+
+<p><strong>压缩系统依赖隐式的"值安全"假设，而不是显式类型约束。</strong></p>
+
+<table>
+<tr><td>Bug</td><td>假设</td><td>实际</td><td>结果</td></tr>
+<table>
+<tr><td>Marker 传播</td><td>`copy()` 不会传播内部状态</td><td>浅拷贝复制了 `_db_persisted`</td><td>数据丢失</td></tr>
+<table>
+<tr><td>Auto-lower</td><td>`aux_context` 来自模型检测</td><td>可能来自配置覆盖</td><td>性能退化</td></tr>
+<table>
+<tr><td>Dict crash</td><td>`args.get("content")` 是 str</td><td>可能是 dict/list</td><td>运行时崩溃</td></tr>
+
+<p>在 Python 中，这三个假设都没有编译器或类型检查器来保护。它们只在运行时暴露，而且需要特定的用户配置或模型行为才能触发。</p>
+
+<p>---</p>
+
+<h2> 贡献影响</h2>
+
+<table>
+<tr><td>Bug</td><td>状态</td><td>Commit 链接</td></tr>
+<table>
+<tr><td>Marker 传播</td><td>✅ **Merged to main**（2 commits）</td><td>`3e204bd` + `5eaccf5`</td></tr>
+<table>
+<tr><td>Auto-lower</td><td>PR 已提交</td><td>[#58435](https://github.com/NousResearch/hermes-agent/pull/58435)</td></tr>
+<table>
+<tr><td>Dict crash</td><td>PR 已提交</td><td>[#58442](https://github.com/NousResearch/hermes-agent/pull/58442)</td></tr>
+
+<p><strong>最关键的是</strong>：Top Contributor kshitijk4poor 在我们的 marker 传播修复之上构建了 follow-up commit——这是一个明确的质量认可信号。</p>
+
+<p>---</p>
+
+<h2> 学到的教训</h2>
+
+<ol>
+<li>**跨层调用链是 Bug 温床**。当值穿过 3 个函数后，原始含义可能已经丢失了</li>
+<li>**"用户最了解"和"自动检测"需要明确区分**——不能把配置覆盖值当检测值用</li>
+<li>**类型假设在 Python 中必须主动验证**——不能假设工具调用的参数类型</li>
+<li>**内部状态（如 `_db_persisted`）应该有生命周期管理**——不应该通过拷贝传播</li>
+</ul>
+
+<p>---</p>
+
+<p>*本文基于我在 Hermes Agent 的实际贡献。所有分析都可以在 GitHub 上验证：<a href="https://github.com/NousResearch/hermes-agent/commits?author=nankingjing">nankingjing 的 commits</a>*</p>
+
+<div class="footer"><p><a href="https://github.com/nankingjing">nankingjing</a> &middot; 2026 &middot; All claims verifiable on GitHub</p></div>
+</article>
+</body>
+</html>

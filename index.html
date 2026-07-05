@@ -36,7 +36,11 @@ blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:16px 0;co
 <main>
 
 <h1>Open Source AI Agent Contributions</h1>
-<p class="subtitle">nankingjing (黄云龙) · 4 repositories · 50+ PRs · 3 shipped features</p>
+<p class="subtitle"><a href="https://github.com/nankingjing">nankingjing (黄云龙)</a> · 4 repositories · 50+ PRs · 3 frameworks shipped</p>
+
+<p style="max-width:660px;color:var(--muted);font-size:.92em;margin-bottom:32px">
+在日常使用 Hermes Agent 和 OpenClaw 进行 AI Agent 开发时，发现并修复了多个框架的核心缺陷——从上下文压缩系统的数据丢失、model auth 的升级回归，到 WebUI 的移动端适配。修复被维护者采纳后持续贡献，从 UI 深入到 Agent 运行时核心。
+</p>
 
 <div class="stats">
   <div class="stat"><div class="num">7×</div><div class="label">CHANGELOG @署名</div></div>
@@ -53,11 +57,11 @@ blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:16px 0;co
 <tr><th>#</th><th>功能</th><th>状态</th></tr>
 <tr><td>1</td><td>移动端审批弹窗高度修复</td><td><span class="tag tag-g">SHIPPED v0.51.877</span></td></tr>
 <tr><td>2</td><td>Transcript 评估器拆分重构</td><td><span class="tag tag-g">MERGED</span></td></tr>
-<tr><td>3</td><td>侧边栏菜单不随滚动关闭</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
-<tr><td>4</td><td>Profile 切换后新会话不再 404</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
-<tr><td>5</td><td>远程网关健康检查 Bearer 认证</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
-<tr><td>6</td><td>更新摘要新增 Expand 控件</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
-<tr><td>7</td><td>Ctrl+K 文字输入保护</td><td><span class="tag tag-g">CHANGELOG</span></td></tr>
+<tr><td>3</td><td>侧边栏菜单不随滚动关闭</td><td><span class="tag tag-g">SHIPPED</span></td></tr>
+<tr><td>4</td><td>Profile 切换后新会话不再 404</td><td><span class="tag tag-g">SHIPPED</span></td></tr>
+<tr><td>5</td><td>远程网关健康检查 Bearer 认证</td><td><span class="tag tag-g">SHIPPED</span></td></tr>
+<tr><td>6</td><td>更新摘要新增 Expand 控件</td><td><span class="tag tag-g">SHIPPED</span></td></tr>
+<tr><td>7</td><td>Ctrl+K 文字输入保护</td><td><span class="tag tag-g">SHIPPED</span></td></tr>
 <tr><td>8</td><td>三面板缩放布局修复</td><td>PR <a href="https://github.com/nesquena/hermes-webui/pull/5621">#5621</a></td></tr>
 <tr><td>9</td><td>移动端语音输入连续模式</td><td>PR <a href="https://github.com/nesquena/hermes-webui/pull/5622">#5622</a></td></tr>
 </table>
@@ -93,7 +97,7 @@ blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:16px 0;co
 <h3><a href="https://github.com/openclaw/openclaw">OpenClaw</a> — Agent 基础设施</h3>
 <table>
 <tr><th>PR</th><th>修复</th><th>评级</th></tr>
-<tr><td><a href="https://github.com/openclaw/openclaw/pull/99041">#99041</a></td><td>modelstudio profile alias P1 修复</td><td><span class="tag tag-p">🐚 Platinum Hermit</span></td></tr>
+<tr><td><a href="https://github.com/openclaw/openclaw/pull/99041">#99041</a></td><td>modelstudio profile alias P1 修复</td><td><span class="tag tag-p" title="ClawSweeper 自动化代码审查的最高 patch quality 评级">🐚 Platinum Hermit</span></td></tr>
 <tr><td><a href="https://github.com/openclaw/openclaw/pull/100193">#100193</a></td><td>Anthropic thinking error 恢复扩展到 body/detail/responseBody</td><td>—</td></tr>
 <tr><td><a href="https://github.com/openclaw/openclaw/pull/100202">#100202</a></td><td>thinking-signature replay_invalid 崩溃修复</td><td>—</td></tr>
 <tr><td><a href="https://github.com/openclaw/openclaw/pull/100300">#100300</a></td><td>Codex native hook relay 竞态条件</td><td>—</td></tr>
@@ -106,11 +110,11 @@ blockquote{border-left:3px solid var(--accent);padding:8px 16px;margin:16px 0;co
 <div class="repo">
 <h3><a href="https://github.com/Panniantong/Agent-Reach">Agent-Reach</a> — Agent 互联网接入</h3>
 <table>
-<tr><th>PR</th><th>修复</th></tr>
-<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/474">#474</a></td><td>Cookie 隐私泄露 — --platform 过滤</td></tr>
-<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/475">#475</a></td><td>OpenRouter STT 语音转录后端</td></tr>
-<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/477">#477</a></td><td>雪球 pe_ttm 永远为 None — API endpoint 修正</td></tr>
-<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/480">#480</a></td><td>Jina Reader Cloudflare 拦截自动回退</td></tr>
+<tr><th>PR</th><th>修复</th><th>类型</th></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/474">#474</a></td><td>Cookie 隐私泄露 — --platform 过滤</td><td><span class="tag tag-p">Security</span></td></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/475">#475</a></td><td>OpenRouter STT 语音转录后端</td><td><span class="tag tag-o">Feature</span></td></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/477">#477</a></td><td>雪球 pe_ttm 永远为 None — API endpoint 修正</td><td><span class="tag tag-g">Bug Fix</span></td></tr>
+<tr><td><a href="https://github.com/Panniantong/Agent-Reach/pull/480">#480</a></td><td>Jina Reader Cloudflare 拦截自动回退</td><td><span class="tag tag-o">Feature</span></td></tr>
 </table>
 </div>
 
